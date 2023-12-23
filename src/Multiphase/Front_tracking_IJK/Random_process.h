@@ -74,19 +74,18 @@ public:
 
 private:
 
-  int nl,nm,nn,n_lmn;
-  double eps_etoile,tL;
-  int kmin,kmax;
+  int nl, nm, nn, n_lmn;
+  double eps_etoile, tL;
+  int kmin, kmax;
 
   std::minstd_rand gen;
   std::string nom_fichier_;
   Nom nom_sauvegarde_;
-//  IntTab semi_gen_et_modulo_reprise_;
   ArrOfInt semi_gen_et_modulo_reprise_;
   std::normal_distribution < double > distribution;
   int moke_gen_;
 
-  std::vector< std::vector< std:: vector < double > > > process;
+  std::vector< std::vector< std:: vector < double > > > process; // ALAN pas très optimisé comme format. À modifier pour faire un vecteur 1D avec un parcours en indice
   ArrOfDouble process_flt;
 
 //  int i_offset;

@@ -74,17 +74,18 @@ public:
 private:
   int nproc_tot;
 
-  int ni,nj,nk,n_ijk;
-  int nl,nm,nn,n_lmn;
+  // TODO faire une struct
+  int ni, nj, nk, n_ijk;
+  int nl, nm, nn, n_lmn;
   double Lx, Ly, Lz;
   double Ox, Oy, Oz;
-  double kmin,kmax;
-  int momin,momax;
+  double kmin, kmax;
+  int momin, momax;
   FixedVector<IJK_Field_double, 3> force_;
-  std::vector<std::vector< std:: vector < double > > > force;
+  std::vector<std::vector< std:: vector < double > > > force; // TODO faire un champ 3D IJK
   double energie;
 
-  int nproc_i,nproc_j,nproc_k;
+  int nproc_i, nproc_j, nproc_k;
   int i_offset;
   int j_offset;
   int k_offset;

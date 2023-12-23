@@ -62,8 +62,8 @@ public :
   int get_forced_advection();
   int activate_forcage(const int current_time_step, const double current_time);
   int get_semi_gen();
-  ArrOfDouble get_b_flt();
-  FixedVector<IJK_Field_double, 3> get_force_ph();
+  ArrOfDouble& get_b_flt();
+  FixedVector<IJK_Field_double, 3>& get_force_ph();
   FixedVector<IJK_Field_double, 3>& get_force_ph2();
 
   void update_advection_velocity(ArrOfDouble& value);

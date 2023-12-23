@@ -74,6 +74,9 @@ Sortie& Random_process::printOn( Sortie& os ) const
   //  *gen_write_ << gen;
   //  gen_write_->close();
 
+  // TODO: 04/12/2023, Alan. Modifier ce printOn car nom_sauvegarde_ n'est pas
+  // connu. Inutile d'écrire la graine. Il faudrait la passer en argument du JDD.
+
   std::ofstream gen_write(nom_sauvegarde_ + ".gen");
 //  SFichier gen_write;
 //  gen_write.ouvrir(nom_sauvegarde_);
@@ -112,32 +115,18 @@ Entree& Random_process::readOn( Entree& is )
 {
   // param.ajouter n'existe pas pour un long int.
   Param param(que_suis_je());
-  param.ajouter("process_b",&process_flt);
-
-//  gen_write_->open(nomFichierReprise_.c_str());
-//  *gen_write_ << like_gen;
-//  gen_write_->close();
-//  gen_read_->open(nomFichierReprise_.c_str());
-//  *gen_read_ >> long_gen;
-//  gen_read_->close();
-
-//  std::ifstream gen_read("reprise_gen.txt");
-//  gen_read >> long_gen;
-//  gen_read >> gen;
-//  gen_read.close();
-
-  param.ajouter("semi_gen_et_modulo_reprise_",&semi_gen_et_modulo_reprise_,Param::REQUIRED);
-  //Cout << "hello" << finl;
+  param.ajouter("process_b", &process_flt);
+  param.ajouter("semi_gen_et_modulo_reprise_", &semi_gen_et_modulo_reprise_, Param::REQUIRED);
   //param.ajouter("distribution",&distribution);
   param.lire_avec_accolades(is);
   return is;
 }
 
-
-Random_process::Random_process() : nl(0),nm(0),nn(0),n_lmn(nl*nn*nm),kmin(0),kmax(0),semi_gen_et_modulo_reprise_(2)
+Random_process::Random_process() : nl(0), nm(0), nn(0), n_lmn(nl*nn*nm),
+                                   kmin(0), kmax(0), semi_gen_et_modulo_reprise_(2)
 {
-  semi_gen_et_modulo_reprise_[0]=0;
-  semi_gen_et_modulo_reprise_[1]=0;
+  semi_gen_et_modulo_reprise_[0] = 0;
+  semi_gen_et_modulo_reprise_[1] = 0;
 }
 
 
@@ -146,25 +135,23 @@ Random_process::~Random_process()
 
 }
 
-
 void Random_process::initialise(double a_eps_etoile, double a_tL,
-                                int a_nl, int a_nm, int a_nn, std::string nom_fichier,//, int a_random_fixed_,
-                                Nom nom_sauvegarde
-                               )
+                                int a_nl, int a_nm, int a_nn, std::string nom_fichier,
+                                Nom nom_sauvegarde)
 {
 // int ind,l,m,n;
   nl = a_nl;
   nm = a_nm;
   nn = a_nn;
-  n_lmn = (2*nl+1)*(2*nm+1)*(2*nn+1);
-
+  n_lmn = (2*nl + 1)*(2*nm + 1)*(2*nn + 1);
   eps_etoile = a_eps_etoile;
   tL = a_tL;
-  process = set_dimensions(process,2,3,n_lmn);
+
+  process = set_dimensions(process, 2, 3, n_lmn);
 // process_flt.resize(2*3*n_lmn,0.0);
   process_flt.resize(2*3*n_lmn);
   semi_gen_et_modulo_reprise_.resize(2);
-  moke_gen_ = semi_gen_et_modulo_reprise_[0] ;
+  moke_gen_ = semi_gen_et_modulo_reprise_[0];
 
   // Initialisation de la serie aleatoire qui sera tiree.
   if (moke_gen_ < 0 )
@@ -195,26 +182,19 @@ void Random_process::initialise(double a_eps_etoile, double a_tL,
       Cerr << "moke_gen a une valeur anormale" << finl;
     }
 
-  std::normal_distribution < > dist_support(0.,1.);
+  std::normal_distribution < > dist_support(0., 1.);
   distribution = dist_support;
 
-//  std::ofstream detail_gen(nom_fichier);
   nom_sauvegarde_ = nom_sauvegarde;
   nom_fichier_ = nom_fichier;
   std::ofstream Detail_gen(nom_fichier_.c_str());
   if(Detail_gen)
     {
       Detail_gen << "-------- RANDOM_PROCESS; detail de gen --------" << std::endl;
-//	  Detail_gen << std::endl << "l,m,n \t : b_x, \tb_y, \tb_z,\t";
     }
-
-//  nomFichierReprise_ = "reprise_gen.sauv";
-//  *gen_write_ = nomFichierReprise_.c_str();
-//  *gen_read_ = nomFichierReprise_.c_str();
-
 }
 
-
+// ALAN 2023-11-04 : inutilisée à priori. À suppr.
 void Random_process::next_step(double dt, int it)
 {
   // Ajouter le lien d'ou j'ai pompe
@@ -228,34 +208,34 @@ void Random_process::next_step(double dt, int it)
   std::vector< std::vector< std:: vector < double > > > old_process;
   int cpx, dir, l, m, n, ind;
 
-  old_process = process;
-  for (n=0; n<2*nn+1; n++)
-    for (m=0; m<2*nm+1; m++)
+  old_process = process; // ALAN : copie inutile ? On peut reprendre directement process
+  for (n = 0; n < 2*nn + 1; n++)
+    for (m = 0; m < 2*nm + 1; m++)
       // TODO : Distinguer cas pair de cas impair !!! ATTN
-      for (l=nl; l<2*nl+1; l++) // La force sp est a symmetrie Hermitienne, donc le rp aussi. On ne parcourt donc que la moitiee du tout
+      for (l = nl; l < 2*nl + 1; l++) // La force sp est a symmetrie Hermitienne, donc le rp aussi. On ne parcourt donc que la moitiee du tout. ALAN: est-ce que ça a été validé ?
         {
-          ind = (n*(2*nm+1) + m) * (2*nl+1) +l;
+          ind = (n*(2*nm +1) + m)*(2*nl + 1) + l;
           // std::cout << "ind : " << ind << "/" << n_lmn << std::endl;
           // std::cout << "otr : " << n_lmn-ind << "/" << n_lmn << std::endl;
-          for (dir=0; dir<3; dir++)
+          for (dir = 0; dir < 3; dir++)
             {
-              for (cpx=0; cpx<2; cpx++)
+              for (cpx = 0; cpx < 2; cpx++)
                 {
                   Gaussian[cpx][dir] = distribution(gen);
-                  process[cpx][dir][ind] = old_process[cpx][dir][ind]*(1-dt/tL);
-                  process[cpx][dir][ind] += Gaussian[cpx][dir]*sqrt(2*eps_etoile*dt*pow(tL,2));
+                  process[cpx][dir][ind] = old_process[cpx][dir][ind]*(1 - dt/tL);
+                  process[cpx][dir][ind] += Gaussian[cpx][dir]*sqrt(2*eps_etoile*dt*pow(tL, 2));
                 }
               // Symetrie Hermitienne. Sous nos conventions, -k[ind] = k[n_lmn - ind]
               // Remarque : on ne se sert meme pas de l'autre moitie.
               //            on la calcule quand meme pour faciliter les ecritures
+              // ALAN : est-ce validé ?
               process[0][dir][n_lmn-ind] =   process[0][dir][ind];
               process[1][dir][n_lmn-ind] = - process[1][dir][ind];
             }
         }
 }
 
-
-
+// ALAN 2024-12-04 : utilisée
 void Random_process::next_step2(double dt, int it)
 {
   if (Process::je_suis_maitre())
@@ -310,6 +290,7 @@ void Random_process::next_step2(double dt, int it)
   envoyer_broadcast(process_flt,0);
 }
 
+// ALAN 2023-11-04 : inutilisée à priori. À suppr.
 void Random_process::next_step3(ArrOfDouble& advection_velocity, double dt, int it)
 {
   // On ajoute l'advection du forcage uniquement sur processus aleatoire
@@ -393,19 +374,16 @@ void Random_process::write(std::string nom_fichier_sortie, double t)
   std::ofstream Random_flux(nom_fichier_sortie.c_str(), std::ios::app);
   if (Random_flux)
     {
-      // int cpx, dir;
-      int l, m, n, ind;
-
       Random_flux << std::endl << "time : " << t << std::endl << std::endl;
-      for (n=0; n<2*nn+1; n++)
-        for (m=0; m<2*nm+1; m++)
-          for (l=0; l<2*nl+1; l++)
+      for (int n = 0; n < 2*nn + 1; ++n)
+        for (int m = 0; m < 2*nm + 1; ++m)
+          for (int l = 0; l < 2*nl + 1; ++l)
             {
-              ind = (n*(2*nm+1) + m) * (2*nl+1) +l;
-              Random_flux << l<<","<<m<<","<<n<<"\t : ";
-              Random_flux << process[0][0][ind] << " + i" << process[1][0][ind]<<", \t";
-              Random_flux << process[0][1][ind] << " + i" << process[1][1][ind]<<", \t";
-              Random_flux << process[0][2][ind] << " + i" << process[1][2][ind]<<", \t";
+              int ind = (n*(2*nm + 1) + m)*(2*nl + 1) + l;
+              Random_flux << l << "," << m << "," << n << "\t : ";
+              Random_flux << process[0][0][ind] << " + i" << process[1][0][ind] << ", \t";
+              Random_flux << process[0][1][ind] << " + i" << process[1][1][ind] << ", \t";
+              Random_flux << process[0][2][ind] << " + i" << process[1][2][ind] << ", \t";
               Random_flux << std::endl;
             }
     }
@@ -416,26 +394,25 @@ void Random_process::write_separate(std::string nom_fichier_sortie, double t)
   std::ofstream Random_flux(nom_fichier_sortie.c_str());
   if (Random_flux)
     {
-      // int cpx, dir;
-      int l, m, n, ind;
       Random_flux << std::endl << "l,m,n, \t  rb_x, \t cb_x, \t\t rb_y, \t cb_y, \t\t rb_z, \t cb_z \t";
       Random_flux << std::endl;
 
       // Random_flux << std::endl << "time : " << t << std::endl << std::endl;
-      for (n=0; n<2*nn+1; n++)
-        for (m=0; m<2*nm+1; m++)
-          for (l=0; l<2*nl+1; l++)
+      for (int n = 0; n < 2*nn + 1; ++n)
+        for (int m = 0; m < 2*nm + 1; ++m)
+          for (int l = 0; l < 2*nl + 1; ++l)
             {
-              ind = (n*(2*nm+1) + m) * (2*nl+1) +l;
-              Random_flux << l<<","<<m<<","<<n<<"\t,";
-              Random_flux << process[0][0][ind] << ",\t" << process[1][0][ind]<<", \t\t";
-              Random_flux << process[0][1][ind] << ",\t" << process[1][1][ind]<<", \t\t";
-              Random_flux << process[0][2][ind] << ",\t" << process[1][2][ind]<<"\t";
+              int ind = (n*(2*nm + 1) + m)*(2*nl + 1) + l;
+              Random_flux << l << "," << m << "," << n << "\t,";
+              Random_flux << process[0][0][ind] << ",\t" << process[1][0][ind] << ", \t\t";
+              Random_flux << process[0][1][ind] << ",\t" << process[1][1][ind] << ", \t\t";
+              Random_flux << process[0][2][ind] << ",\t" << process[1][2][ind] << "\t";
               Random_flux << std::endl;
             }
     }
 }
 
+// ALAN mettre une référence ? il renvoie le tableau complet. Mais pas utilisé ?
 std::vector< std::vector< std:: vector < double >>> Random_process::get_b()
 {
   return process;

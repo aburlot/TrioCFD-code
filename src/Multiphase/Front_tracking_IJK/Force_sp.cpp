@@ -46,64 +46,64 @@ Entree& Force_sp::readOn( Entree& is )
 }
 
 
-Force_sp::Force_sp() : nl(0),nm(0),nn(0),n_lmn(nl*nn*nm),kmin(0),kmax(0), energie(0)
+Force_sp::Force_sp() : nl(0), nm(0), nn(0), n_lmn(nl*nn*nm), kmin(0), kmax(0), energie(0)
 {
-
 }
 
 Force_sp::~Force_sp()
 {
-
 }
 
-void Force_sp::initialise(int a_nl,int a_nn,int a_nm, int a_momin, int a_momax, double a_kmin, double a_kmax, std::string nom_fichier
-                         )
+void Force_sp::initialise(int a_nl,int a_nn,int a_nm, int a_momin, int a_momax,
+                          double a_kmin, double a_kmax, std::string nom_fichier)
 {
   nl = a_nl;
   nm = a_nm;
   nn = a_nn;
-  n_lmn = (2*nl+1)*(2*nm+1)*(2*nn+1);
+  n_lmn = (2*nl + 1)*(2*nm + 1)*(2*nn + 1);
   momin = a_momin;
   momax = a_momax;
   kmin = a_kmin;
   kmax = a_kmax;
   amplitude = 0.;
+  energie = 0.;
 
-
+  // TODO : revoir le format de force ?
 // force[0] -> Partie reelle;
 // force[1] -> partie imaginaire;
   force.resize(2);
 // force[_][i] -> Composant i = x, y ou z
   force[0].resize(3);
   force[1].resize(3);
-  force[0][0].resize(n_lmn,0.0);
-  force[1][0].resize(n_lmn,0.0);
-  force[0][1].resize(n_lmn,0.0);
-  force[1][1].resize(n_lmn,0.0);
-  force[0][2].resize(n_lmn,0.0);
-  force[1][2].resize(n_lmn,0.0);
+  force[0][0].resize(n_lmn, 0.0);
+  force[1][0].resize(n_lmn, 0.0);
+  force[0][1].resize(n_lmn, 0.0);
+  force[1][1].resize(n_lmn, 0.0);
+  force[0][2].resize(n_lmn, 0.0);
+  force[1][2].resize(n_lmn, 0.0);
 
   force_flt.resize_array(2*3*n_lmn);
 
   std::ofstream Spectral_flux(nom_fichier.c_str());
   if(Spectral_flux)
     {
-      Spectral_flux << "-------- SECTRAL_FORCE --------" << std::endl;
-      Spectral_flux << std::endl << "l,m,n \t : f_x, \tf_y, \tf_z,\t";
+      Spectral_flux << "-------- SECTRAL_FORCE --------\n";
+      Spectral_flux << "\nl,m,n \t : f_x, \tf_y, \tf_z,\t";
     }
 
-  energie = 0.;
-
+  return;
 }
 
-
-void Force_sp::initialise(int a_nl,int a_nn,int a_nm, int a_momin, int a_momax, double a_kmin, double a_kmax, double a_amplitude, std::string nom_fichier)
+// Laquelle est utilisée ?
+void Force_sp::initialise(int a_nl, int a_nn, int a_nm, int a_momin, int a_momax,
+                          double a_kmin, double a_kmax, double a_amplitude,
+                          std::string nom_fichier)
 {
 
   nl = a_nl;
   nm = a_nm;
   nn = a_nn;
-  n_lmn = (2*nl+1)*(2*nm+1)*(2*nn+1);
+  n_lmn = (2*nl + 1)*(2*nm + 1)*(2*nn + 1);
   momin = a_momin;
   momax = a_momax;
   kmin = a_kmin;
@@ -117,12 +117,12 @@ void Force_sp::initialise(int a_nl,int a_nn,int a_nm, int a_momin, int a_momax, 
   force[0].resize(3);
   force[1].resize(3);
 
-  force[0][0].resize(n_lmn,0.0);
-  force[1][0].resize(n_lmn,0.0);
-  force[0][1].resize(n_lmn,0.0);
-  force[1][1].resize(n_lmn,0.0);
-  force[0][2].resize(n_lmn,0.0);
-  force[1][2].resize(n_lmn,0.0);
+  force[0][0].resize(n_lmn, 0.0);
+  force[1][0].resize(n_lmn, 0.0);
+  force[0][1].resize(n_lmn, 0.0);
+  force[1][1].resize(n_lmn, 0.0);
+  force[0][2].resize(n_lmn, 0.0);
+  force[1][2].resize(n_lmn, 0.0);
 
   force_flt.resize_array(2*3*n_lmn);
 
@@ -141,6 +141,7 @@ void Force_sp::compute_step2(ArrOfDouble& process_flt)
 {
   if (Process::je_suis_maitre())
     {
+      // TODO : vérifier la symétrie hermitienne !!
       /*
       Version avancée du calcul du processus aléatoire :
         - Les champs sont stockés dans des tableaux à une dimension,
@@ -149,12 +150,12 @@ void Force_sp::compute_step2(ArrOfDouble& process_flt)
       int n_dir(3);
       double kappa[3];
       double terme[2];
-      for (int n=0; n<2*nn+1; n++)
-        for (int m=0; m<2*nm+1; m++)
-          for (int l=nl; l<2*nl+1; l++) // La TF-1 de cette force est réelle. Donc cette force est à symétrie Hermitienne
+      for (int n = 0; n < 2*nn + 1; n++)
+        for (int m = 0; m < 2*nm + 1; m++)
+          for (int l = nl; l < 2*nl + 1; l++) // La TF-1 de cette force est réelle. Donc cette force est à symétrie Hermitienne.
             {
-              int ind_lmn = (n*(2*nm+1) + m) * (2*nl+1) +l;
-              int ind_lmn_moins = (n*(2*nm+1) + m) * (2*nl+1) + (2*nl-l);
+              int ind_lmn = (n*(2*nm + 1) + m) * (2*nl + 1) + l;
+              int ind_lmn_moins = (n*(2*nm + 1) + m) * (2*nl + 1) + (2*nl - l);
               // Position dans l'espace spectral. k_x va de -kmin a +kmin,
               // d'ou le l-nl
               kappa[0] = - kmax + (l)*(2*kmax)/(2*nl);
@@ -163,7 +164,7 @@ void Force_sp::compute_step2(ArrOfDouble& process_flt)
 
               if (std::fabs(kappa[0])<kmin && std::fabs(kappa[1])<kmin && std::fabs(kappa[2])<kmin)
                 {
-                  /* Le nombre d'onde est trop petit pour etre dans le domaine force*/
+                  /* Le nombre d'onde est trop petit pour etre dans le domaine force */
                   for (int cpx=0; cpx<2; cpx++)
                     {
                       for (int dir=0; dir<3; dir++)
@@ -178,18 +179,19 @@ void Force_sp::compute_step2(ArrOfDouble& process_flt)
               else
                 {
                   /* On est dans le domaine force */
-                  double norme_kappa = sqrt(kappa[0]*kappa[0] + kappa[1]*kappa[1] + kappa[2]*kappa[2]);
+                  double kappa2 = kappa[0]*kappa[0] + kappa[1]*kappa[1] + kappa[2]*kappa[2];
                   for (int cpx=0; cpx<2; cpx++)
                     {
-                      terme[cpx] =  kappa[0]*process_flt[(cpx*n_dir+0)*n_lmn+ind_lmn];
-                      terme[cpx] += kappa[1]*process_flt[(cpx*n_dir+1)*n_lmn+ind_lmn];
-                      terme[cpx] += kappa[2]*process_flt[(cpx*n_dir+2)*n_lmn+ind_lmn];
-                      terme[cpx] /= pow(norme_kappa,2);
-                      for (int dir=0; dir<3; dir++)
+                      terme[cpx] =  kappa[0]*process_flt[(cpx*n_dir + 0)*n_lmn + ind_lmn];
+                      terme[cpx] += kappa[1]*process_flt[(cpx*n_dir + 1)*n_lmn + ind_lmn];
+                      terme[cpx] += kappa[2]*process_flt[(cpx*n_dir + 2)*n_lmn + ind_lmn];
+                      terme[cpx] /= kappa2;
+                      for (int dir = 0; dir < 3; dir++)
                         {
-                          int ind_CDI((cpx*n_dir+dir)*n_lmn+ind_lmn);
+                          int ind_CDI = (cpx*n_dir + dir)*n_lmn + ind_lmn;
                           force_flt[ind_CDI] = process_flt[ind_CDI] - kappa[dir]*terme[cpx];
                           // Symétrie Hermitienne : Sous nos conventions, -k[ind] = k[n_lmn - ind]
+                          // Validée ??
                           force_flt[(0*n_dir+dir)*n_lmn+(ind_lmn_moins)] =   force_flt[(0*n_dir+dir)*n_lmn+(ind_lmn)];
                           force_flt[(1*n_dir+dir)*n_lmn+(ind_lmn_moins)] = - force_flt[(1*n_dir+dir)*n_lmn+(ind_lmn)];
                         }
@@ -197,12 +199,12 @@ void Force_sp::compute_step2(ArrOfDouble& process_flt)
                 }
             }
     }
-  envoyer_broadcast(force_flt,0);
+  envoyer_broadcast(force_flt, 0);
 }
 
 void Force_sp::field_advection(const ArrOfDouble& advection_length, const double dt, const int it)
 {
-  if (it>0)
+  if (it > 0)
     {
       if (Process::je_suis_maitre())
         {
@@ -750,11 +752,11 @@ double Force_sp::get_force(int cpx, int dir, int ind)
   return force[cpx][dir][ind];
 }
 
+// TODO utiliser les tableaux de Trust + passage par ref
 std::vector< std::vector< std:: vector <double >>> Force_sp::get_coeff()
 {
   return force;
 }
-
 
 ArrOfDouble& Force_sp::get_coeff_flt()
 {

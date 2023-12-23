@@ -83,25 +83,25 @@ Entree& init_forcage_THI::readOn( Entree& is )
 {
   // Objet_U::readOn( is );
   Param param(que_suis_je());
-  param.ajouter("type",&type_forcage);
-  param.ajouter("facteur",&facteur_forcage_);
-  param.ajouter("forced_advection",&forced_advection_);
+  param.ajouter("type", &type_forcage);
+  param.ajouter("facteur", &facteur_forcage_);
+  param.ajouter("forced_advection", &forced_advection_);
   if (forced_advection_==1)
     {param.ajouter("advection_velocity", &advection_velocity_, Param::REQUIRED);}
   else
     {param.ajouter("advection_velocity", &advection_velocity_);}
   param.ajouter("advection_length", &advection_length_);
-  param.ajouter("stops_at_time_step",&forcage_ts_stop);
-  param.ajouter("stops_at_time",&forcage_t_stop);
-  param.ajouter("minimal_forced_mode",&mode_min);
-  param.ajouter("maximal_forced_mode",&mode_max);
-  param.ajouter("amplitude",&amplitude);
-  param.ajouter("dissipation",&eps_etoile);
-  param.ajouter("temps_grande_echelle",&tL);
+  param.ajouter("stops_at_time_step", &forcage_ts_stop);
+  param.ajouter("stops_at_time", &forcage_t_stop);
+  param.ajouter("minimal_forced_mode", &mode_min);
+  param.ajouter("maximal_forced_mode", &mode_max);
+  param.ajouter("amplitude", &amplitude);
+  param.ajouter("dissipation", &eps_etoile);
+  param.ajouter("temps_grande_echelle", &tL);
   if (type_forcage == 3)
-    {param.ajouter("random_process",&random_, Param::REQUIRED);}
+    {param.ajouter("random_process", &random_, Param::REQUIRED);}
   else
-    {param.ajouter("random_process",&random_);}
+    {param.ajouter("random_process", &random_);}
   param.lire_avec_accolades(is);
   return is;
 }
@@ -129,21 +129,19 @@ void init_forcage_THI::compute_initial_chouippe(int my_nproc_tot,
   int ni(my_ni), nj(my_nj), nk(my_nk);
 
   int mmin(mode_min), mmax(mode_max);
-  // double kmin(2.*M_PI*mmin/Lx), kmax(2.*M_PI*mmax/Lx);
-  double kmin(2.*M_PI*mmin/Lx), kmax(2.*M_PI*mmax/Lx);
+   double kmin(2.*M_PI*mmin/Lx), kmax(2.*M_PI*mmax/Lx);
   int nl(mmax), nm(mmax), nn(mmax);
 
   std::string nom_fichier_random("./random_gen.out");
   std::string nom_fichier_spectral("./spectral.out");
   std::string nom_fichier_physique("./physique.out");
-
-  f_sp_THI.initialise(nl,nm,nn, mmin,mmax,kmin,kmax,amplitude, nom_fichier_spectral);
-  // f_ph_THI.initialise(my_nproc_tot,ni,nj,nk,nl,nm,nn,Lx,Ly,Lz,Ox,Oy,Oz,mmin,mmax,kmin,kmax, nom_fichier_physique, splitting_);//,i_offset,j_offset,k_offset);
-  f_ph_THI.initialise(my_nproc_tot,ni,nj,nk,nl,nm,nn,Lx,Ly,Lz,Ox,Oy,Oz,mmin,mmax,kmin,kmax, nom_fichier_physique, splitting_,i_offset,j_offset,k_offset);
+  // TODO faire une struct ?
+  f_sp_THI.initialise(nl, nm, nn, mmin, mmax, kmin, kmax, amplitude, nom_fichier_spectral);
+  // TODO faire une struct !
+  f_ph_THI.initialise(my_nproc_tot, ni, nj, nk, nl, nm, nn, Lx, Ly, Lz, Ox, Oy, Oz, mmin, mmax, kmin, kmax, nom_fichier_physique, splitting_, i_offset, j_offset, k_offset);
   if (type_forcage == 3)
     {
-      random_.initialise(eps_etoile,tL, nl,nm,nn, nom_fichier_random, nom_sauvegarde);//, random_fixed_);//,i_offset,j_offset,k_offset);
-      // random.initialise(eps_etoile,tL, nl,nm,nn, nom_fichier_random, random_fixed_,i_offset,j_offset,k_offset);
+      random_.initialise(eps_etoile,tL, nl,nm,nn, nom_fichier_random, nom_sauvegarde);
     }
 }
 
@@ -152,7 +150,6 @@ void init_forcage_THI::compute_THI_force(const int time_iteration,
                                          const double tstep,
                                          const double current_time,
                                          const IJK_Splitting& my_splitting
-                                         // const int rk_step,
                                         )
 {
   /*
@@ -218,7 +215,7 @@ void init_forcage_THI::compute_THI_force(const int time_iteration,
     }
 
   /* PASSAGE DU DOMAINE SPECTRAL AU DOMAINE PHYSIQUE */
-  if (type_forcage_active!=20 && type_forcage_active!=0)
+  if (type_forcage_active != 20 && type_forcage_active != 0)
     {
       /*type 20 ecrit directement le champ physique sans passer par la TF
        * Remarque : Si on ajoute d'autre "type"s qui ne doivent pas passer par la TF il faut penser
@@ -229,11 +226,11 @@ void init_forcage_THI::compute_THI_force(const int time_iteration,
        * forced_advection  1 : advection selon advection_velocity (jdd)
        * forced_advection -1 : advection selon moy{u_l}^l         (calcul),
        *                       /!\ Dans le cas d'une reprise, doit on lire la valeur inscrite dans le .sauv ?
-       * forced_advection  0 : advcetion nulle
+       * forced_advection  0 : advection nulle
        * */
-      if (forced_advection_==-1 || forced_advection_==1)
+      if (forced_advection_ == -1 || forced_advection_ == 1)
         {
-          f_ph_THI.from_spect_to_phys_opti2_advection(f_sp_THI.get_coeff_flt(),advection_length_);
+          f_ph_THI.from_spect_to_phys_opti2_advection(f_sp_THI.get_coeff_flt(), advection_length_);
         }
       else
         f_ph_THI.from_spect_to_phys_opti2(f_sp_THI.get_coeff_flt());
@@ -246,13 +243,14 @@ int init_forcage_THI::get_semi_gen()
   return random_.get_semi_gen();
 }
 
-ArrOfDouble init_forcage_THI::get_b_flt()
+ArrOfDouble& init_forcage_THI::get_b_flt()
 {
   return random_.get_b_flt();
 
 }
 
-FixedVector<IJK_Field_double, 3> init_forcage_THI::get_force_ph()
+// TODO ajouter passage par ref ?
+FixedVector<IJK_Field_double, 3>& init_forcage_THI::get_force_ph()
 {
   return f_ph_THI.get_force_attribute();
 }
@@ -286,13 +284,13 @@ void init_forcage_THI::update_advection_velocity(ArrOfDouble& value)
 void init_forcage_THI::update_advection_length(double dt)
 {
   Cout <<"update_advection_length : dt " << dt << finl;
-  time_to_be_del_+=dt;
+  time_to_be_del_ += dt;
   Cout << "update_advection_length : time_to_be_del_ " << time_to_be_del_ << finl;
-  for (int dir=0; dir<3; dir++)
+  for (int dir = 0; dir < 3; ++dir)
     {
-      Cout << "update_advection_length : advection_length_["<<dir<< "] : " << advection_length_[dir] << finl;
+      Cout << "update_advection_length : advection_length_[" << dir << "] : " << advection_length_[dir] << finl;
       advection_length_[dir]+= (advection_velocity_[dir]*dt);
-      Cout << "update_advection_length : advection_length_["<<dir<< "] : " << advection_length_[dir] << finl;
+      Cout << "update_advection_length : advection_length_[" << dir << "] : " << advection_length_[dir] << finl;
     }
 }
 
@@ -303,26 +301,15 @@ int init_forcage_THI::get_forced_advection()
 
 int init_forcage_THI::activate_forcage(const int current_time_step, const double current_time)
 {
-  int stop(0);
-  int no_stop(get_type_forcage());
+  const int stop = 0;
+  const int no_stop = get_type_forcage();
 
-  // J'ai l'impression qu'on peut faire plus malin. Mais bon je ne vois pas trop
-  if ((forcage_ts_stop < 0 ) && (forcage_t_stop < 0))
+  if ((forcage_ts_stop < 0 && forcage_t_stop < 0) ||
+      (forcage_ts_stop < 0 && forcage_t_stop > current_time) ||
+      (forcage_ts_stop > current_time_step && forcage_t_stop < 0) ||
+      (forcage_ts_stop > current_time_step && forcage_t_stop > current_time)) {
     return no_stop;
-  else if ((forcage_ts_stop < 0) && (forcage_t_stop > current_time))
-    {
-      return no_stop;
-    }
-  else if ((forcage_ts_stop > current_time_step) && (forcage_t_stop < 0))
-    {
-      return no_stop;
-    }
-  else if ((forcage_ts_stop > current_time_step) && (forcage_t_stop > current_time))
-    {
-      return no_stop;
-    }
-  else
-    {
-      return stop;
-    }
+  } else {
+    return stop;
+  }
 }
